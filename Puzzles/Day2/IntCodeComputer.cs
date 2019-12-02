@@ -11,21 +11,19 @@ public class IntCodeComputer
         QUIT = 99
     }
 
-    private List<int> opCodes;
-
+    private List<int> memory;
 
     public IntCodeComputer(List<int> opCodes)
     {
-        this.opCodes = opCodes;
+        this.memory = opCodes;
     }
 
     public void Execute()
     {
-                    Console.WriteLine("[IntCodeComputer] exeucting " + opCodes.Count + " elements");
         int executionIndex = 0;
-        while (executionIndex + 3 < opCodes.Count)
+        while (executionIndex + 3 < memory.Count)
         {
-            int opCode = opCodes[executionIndex];
+            int opCode = memory[executionIndex];
             switch((OpCodes)opCode)
             {
                 case OpCodes.ADD:
@@ -47,17 +45,17 @@ public class IntCodeComputer
 
     private void ExecuteAdd(int executionIndex)
     {
-        int a = opCodes[opCodes[executionIndex + 1]];
-        int b = opCodes[opCodes[executionIndex + 2]];
-        int sum = a + b;
-        opCodes[opCodes[executionIndex + 3]] = sum;
+        int verb = memory[memory[executionIndex + 1]];
+        int noun = memory[memory[executionIndex + 2]];
+        int sum = verb + noun;
+        memory[memory[executionIndex + 3]] = sum;
     }
 
     private void ExecuteMultiply(int executionIndex)
     {
-        int a = opCodes[opCodes[executionIndex + 1]];
-        int b = opCodes[opCodes[executionIndex + 2]];
-        int sum = a * b;
-        opCodes[opCodes[executionIndex + 3]] = sum;
+        int verb = memory[memory[executionIndex + 1]];
+        int noun = memory[memory[executionIndex + 2]];
+        int sum = verb * noun;
+        memory[memory[executionIndex + 3]] = sum;
     }
 }
