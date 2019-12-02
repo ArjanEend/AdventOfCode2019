@@ -20,7 +20,7 @@ public abstract class PuzzleBase
     public virtual void LogPuzzleSolution()
     {
         Console.WriteLine("Solution for: "
-            + GetPuzzleData()
+            + GetType().Name
             + " "
             + CalculateSolutions().ToString());
     }
