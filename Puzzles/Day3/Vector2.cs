@@ -58,4 +58,19 @@ public struct IntVector2
         {
             return (dynamic)x * other.y - (dynamic)y * other.x;
         }
+
+    public override bool Equals(object obj)
+    {
+        return base.Equals(obj);
+    }
+
+    public override int GetHashCode()
+    {
+        return x.GetHashCode() ^ y.GetHashCode();
+    }
+
+    public override string ToString()
+    {
+        return base.ToString();
+    }
 }

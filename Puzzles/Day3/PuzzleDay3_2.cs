@@ -3,61 +3,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class PuzzleDay3_1 : PuzzleBase
+public class PuzzleDay3_2 : PuzzleBase
 {
-    private List<IntVector2> path1 = new List<IntVector2>();
-    private List<IntVector2> path2 = new List<IntVector2>();
+    private Dictionary<IntVector2, int> path1 = new Dictionary<IntVector2, int>();
+    private Dictionary<IntVector2, int> path2 = new Dictionary<IntVector2, int>();
 
     bool parsePath2;
 
     public override object CalculateSolutions()
     {
-        
-        int manhattan = int.MaxValue;
+        int steps = int.MaxValue;
 
-        var intersections = path1.Intersect(path2);
+        var intersections = path1.Keys.Intersect(path2.Keys);
 
         foreach(var intersection in intersections)
         {
             if(intersection.x == 0 && intersection.y == 0)
                 continue;
-            if(Math.Abs(intersection.x) + Math.Abs(intersection.y) < manhattan)
+            int stepsCalc = path1[intersection] + path2[intersection];
+            if(stepsCalc < steps)
             {
-                manhattan = Math.Abs((int)intersection.x) + Math.Abs((int)intersection.y);
+                steps = stepsCalc;
             }
         }
-/*
-        for(int i = 0; i < path1.Count; i++)
-        {
-            for(int j = 0; j < path2.Count; j++)
-            {
-                var pathA = path1[i];
-                var pathB = path2[j];
 
-                if(pathA != pathB)
-                    continue;
-
-                if(pathA == new IntVector2(0,0) || pathB == new IntVector2(0,0))
-                    continue;
-
-                var intersection = pathA;
-
-                if (intersection != new IntVector2(0, 0))
-                {
-                    //Console.WriteLine("Intersection at: " + intersection.x + " : " + intersection.y);
-                    if(Math.Abs(intersection.x) + Math.Abs(intersection.y) < manhattan)
-                    {
-                        manhattan = Math.Abs((int)intersection.x) + Math.Abs((int)intersection.y);
-                    }
-                }
-            }
-            
-            Console.WriteLine("Completed loop " + i);
-        }*/
-
-        //Console.WriteLine(path1.Count);
-
-        return manhattan;
+        return steps;
     }
 
     protected override string GetPuzzleData()
@@ -71,6 +41,7 @@ public class PuzzleDay3_1 : PuzzleBase
 
         var path = parsePath2 ? path2 : path1;
 
+        int steps = 0;
         IntVector2 prev = new IntVector2(0, 0);
         foreach(var instruction in instructions)
         {
@@ -80,28 +51,40 @@ public class PuzzleDay3_1 : PuzzleBase
                 case 'R':
                 for(int i = 0; i < amount; i++)
                 {
+            steps++;
                     prev += new IntVector2(1, 0);
-                    path.Add(prev);
+                    if(path.ContainsKey(prev))
+                        continue;
+                    path.Add(prev, steps);
                 }
                 break;
                 case 'U':for(int i = 0; i < amount; i++)
                 {
+            steps++;
                     prev += new IntVector2(0, 1);
-                    path.Add(prev);
+                    if(path.ContainsKey(prev))
+                        continue;
+                    path.Add(prev, steps);
                 }
                 break;
                 case 'D':
                 for(int i = 0; i < amount; i++)
                 {
+            steps++;
                     prev += new IntVector2(0, -1);
-                    path.Add(prev);
+                    if(path.ContainsKey(prev))
+                        continue;
+                    path.Add(prev, steps);
                 }
                 break;
                 case 'L':
                 for(int i = 0; i < amount; i++)
                 {
+            steps++;
                     prev += new IntVector2(-1, 0);
-                    path.Add(prev);
+                    if(path.ContainsKey(prev))
+                        continue;
+                    path.Add(prev, steps);
                 }
                 break;
             }
