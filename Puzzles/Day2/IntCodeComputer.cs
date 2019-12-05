@@ -1,21 +1,27 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class IntCodeComputer
 {
-    public enum OpCodes 
-    {
-        ADD = 1,
-        MULTIPLY = 2,
-        QUIT = 99
-    }
-
     private List<int> memory;
+
+    private Dictionary<int, Type> instructions = new Dictionary<int, Type>();
 
     public IntCodeComputer(List<int> opCodes)
     {
         this.memory = opCodes;
+        
+        IEnumerable<IntCodeInstruction> types = typeof(IntCodeInstruction)
+                .Assembly.GetTypes()
+                .Where(t => t.IsSubclassOf(typeof(IntCodeInstruction)) && !t.IsAbstract)
+                .Select(t => (IntCodeInstruction)Activator.CreateInstance(t));
+
+        foreach(var type in types)
+        {
+            instructions.Add(type.Identifier, type.GetType());
+        }
     }
 
     public void Execute()
@@ -23,23 +29,27 @@ public class IntCodeComputer
         int executionIndex = 0;
         while (executionIndex + 3 < memory.Count)
         {
-            int opCode = memory[executionIndex];
-            switch((OpCodes)opCode)
+            int instructionCode = memory[executionIndex];
+            List<InstructionMode> modes = new List<InstructionMode>();
+
+            int opCode = instructionCode % 100;
+            int num = instructionCode / 100;
+            while (num != 0)
             {
-                case OpCodes.ADD:
-                    ExecuteAdd(executionIndex);
-                break;
-                case OpCodes.MULTIPLY:
-                    ExecuteMultiply(executionIndex);
-                break;
-                case OpCodes.QUIT:
-                    return;
-                default:
-                    Console.WriteLine("[IntCodeComputer] Something when wrong");
-                break;
+                int opNum = num % 100;
+                num /= 100;
+                Console.WriteLine(opNum);
+                modes.Add((InstructionMode)opNum);
             }
+
+            if(opCode == 99)
+                return;
+
+            IntCodeInstruction instruction = Activator.CreateInstance(instructions[opCode]) as IntCodeInstruction;
+            instruction.Execute(memory);
             
-            executionIndex += 4;
+            executionIndex++;
+            executionIndex += instruction.AmountOfParameters;
         }
     }
 
