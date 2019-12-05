@@ -9,19 +9,8 @@ public class PuzzleDay5_1 : PuzzleBase
 
     public override object CalculateSolutions()
     {
-        for(int noun = 0; noun < 100; noun++)
-        {
-            for (int verb = 0; verb < 100; verb++)
-            {
-                var computerInputs = inputs.Select(input => input).ToList();
-                computerInputs[1] = noun;
-                computerInputs[2] = verb;
-                IntCodeComputer computer = new IntCodeComputer(computerInputs);
-                computer.Execute();
-                if(computerInputs[0] == desiredOutput)
-                    return (100 * noun) + verb;
-            }
-        }
+        IntCodeComputer computer = new IntCodeComputer(inputs);
+        computer.Execute();
         
         return "error";
     }

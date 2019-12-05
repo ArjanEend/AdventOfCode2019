@@ -36,8 +36,8 @@ public class IntCodeComputer
             int num = instructionCode / 100;
             while (num != 0)
             {
-                int opNum = num % 100;
-                num /= 100;
+                int opNum = num % 10;
+                num /= 10;
                 Console.WriteLine(opNum);
                 modes.Add((InstructionMode)opNum);
             }
@@ -46,26 +46,8 @@ public class IntCodeComputer
                 return;
 
             IntCodeInstruction instruction = Activator.CreateInstance(instructions[opCode]) as IntCodeInstruction;
-            instruction.Execute(memory);
+            executionIndex = instruction.Execute(memory, modes, executionIndex);
             
-            executionIndex++;
-            executionIndex += instruction.AmountOfParameters;
         }
-    }
-
-    private void ExecuteAdd(int executionIndex)
-    {
-        int verb = memory[memory[executionIndex + 1]];
-        int noun = memory[memory[executionIndex + 2]];
-        int sum = verb + noun;
-        memory[memory[executionIndex + 3]] = sum;
-    }
-
-    private void ExecuteMultiply(int executionIndex)
-    {
-        int verb = memory[memory[executionIndex + 1]];
-        int noun = memory[memory[executionIndex + 2]];
-        int sum = verb * noun;
-        memory[memory[executionIndex + 3]] = sum;
     }
 }
