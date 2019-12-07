@@ -9,7 +9,12 @@ public class IntCodeComputer
     private List<int> inputs;
     private Dictionary<int, Type> instructions = new Dictionary<int, Type>();
 
-    public int output = 0;
+    public List<int> output = new List<int>();
+
+    private int executionIndex = 0;
+    private int inputIndex = 0;
+
+    public bool done = false;
 
     public IntCodeComputer(List<int> opCodes, List<int> inputs = null)
     {
@@ -27,11 +32,14 @@ public class IntCodeComputer
         }
     }
 
+    public void AddInput(int input)
+    {
+        inputs.Add(input);
+    }
+
     public void Execute()
     {
-        int executionIndex = 0;
-        int inputIndex = 0;
-        while (executionIndex + 3 < memory.Count)
+        while (executionIndex < memory.Count)
         {
             int instructionCode = memory[executionIndex];
             List<InstructionMode> modes = new List<InstructionMode>();
@@ -46,16 +54,32 @@ public class IntCodeComputer
             }
 
             if(opCode == 99)
+            {
+                done = true;
                 return;
+            }
 
             IntCodeInstruction instruction = Activator.CreateInstance(instructions[opCode]) as IntCodeInstruction;
-            executionIndex = instruction.Execute(memory, modes, inputs[inputIndex], executionIndex);
-            
-            if (instruction is WriteInstruction && inputIndex + 1 < inputs.Count)
+
+            int input = 0;
+            if(instruction is WriteInstruction && inputIndex >= inputs.Count)
+            {
+                return;
+            } else if (inputIndex >= inputs.Count) {
+                input = inputs[0];
+            } else {
+                input = inputs[inputIndex];
+                if(instruction is WriteInstruction) 
                 inputIndex++;
+            }
+
+            executionIndex = instruction.Execute(memory, modes, input, executionIndex);
 
             if (instruction is LogInstruction log)
-                output = log.output;
+            {
+                output.Add(log.output);
+            }
         }
+        done = true;
     }
 }

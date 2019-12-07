@@ -35,11 +35,14 @@ public class PuzzleDay7_1 : PuzzleBase
             for(int i = 0; i <values.Count; i++)
             {
                 var program = new List<int>(inputs);
-                var computerInputs = new List<int>{values[i], inputValue};
+                var computerInputs = new List<int>{values[i]};
                 IntCodeComputer computer = new IntCodeComputer(program, computerInputs);
-                computer.Execute();
-                Console.WriteLine(computer.output);
-                inputValue = computer.output;
+                while(!computer.done)
+                {
+                    computer.AddInput(inputValue);
+                    computer.Execute();
+                }
+                inputValue = computer.output.LastOrDefault();
             }
             if(inputValue > highestResult)
                 highestResult = inputValue;
