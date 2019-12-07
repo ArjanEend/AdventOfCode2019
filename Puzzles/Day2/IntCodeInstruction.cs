@@ -10,7 +10,7 @@ public abstract class IntCodeInstruction
     
     public abstract int Identifier {get;}
 
-    public abstract int Execute(List<int> memory, List<InstructionMode> modes, int index);
+    public abstract int Execute(List<int> memory, List<InstructionMode> modes, int input, int index);
 }
 
 public enum InstructionMode : int {
@@ -22,11 +22,10 @@ public class WriteInstruction : IntCodeInstruction
 {
     public override int Identifier => 3;
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int index)
+    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
     {
         int value = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        //Console.WriteLine("Give Input");
-        memory[memory[index + 1]] = 5;
+        memory[memory[index + 1]] = input;
         
         return index + 2;
     }
@@ -36,17 +35,19 @@ public class LogInstruction : IntCodeInstruction
 {
     public override int Identifier => 4;
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int index)
+    public int output;
+
+    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
     {
         int value = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        Console.WriteLine(value);
+        this.output = value;
         return index + 2;
     }
 }
 
 public abstract class CompareInstruction : IntCodeInstruction
 {
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int index)
+    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
     {
         int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
         int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];
@@ -61,7 +62,7 @@ public abstract class CompareInstruction : IntCodeInstruction
 
 public abstract class BoolInstruction : IntCodeInstruction
 {
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int index)
+    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
     {
         int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
         int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];
@@ -117,7 +118,7 @@ public class JumpFalse : BoolInstruction
 public abstract class MathInstruction : IntCodeInstruction
 {
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int index)
+    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
     {
         int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
         int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];

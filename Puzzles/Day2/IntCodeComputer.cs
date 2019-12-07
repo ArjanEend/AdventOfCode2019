@@ -6,12 +6,15 @@ using System.Linq;
 public class IntCodeComputer
 {
     private List<int> memory;
-
+    private List<int> inputs;
     private Dictionary<int, Type> instructions = new Dictionary<int, Type>();
 
-    public IntCodeComputer(List<int> opCodes)
+    public int output = 0;
+
+    public IntCodeComputer(List<int> opCodes, List<int> inputs = null)
     {
         this.memory = opCodes;
+        this.inputs = inputs ?? new List<int>{1};
         
         IEnumerable<IntCodeInstruction> types = typeof(IntCodeInstruction)
                 .Assembly.GetTypes()
@@ -27,6 +30,7 @@ public class IntCodeComputer
     public void Execute()
     {
         int executionIndex = 0;
+        int inputIndex = 0;
         while (executionIndex + 3 < memory.Count)
         {
             int instructionCode = memory[executionIndex];
@@ -38,7 +42,6 @@ public class IntCodeComputer
             {
                 int opNum = num % 10;
                 num /= 10;
-                Console.WriteLine(opNum);
                 modes.Add((InstructionMode)opNum);
             }
 
@@ -46,8 +49,13 @@ public class IntCodeComputer
                 return;
 
             IntCodeInstruction instruction = Activator.CreateInstance(instructions[opCode]) as IntCodeInstruction;
-            executionIndex = instruction.Execute(memory, modes, executionIndex);
+            executionIndex = instruction.Execute(memory, modes, inputs[inputIndex], executionIndex);
             
+            if (instruction is WriteInstruction && inputIndex + 1 < inputs.Count)
+                inputIndex++;
+
+            if (instruction is LogInstruction log)
+                output = log.output;
         }
     }
 }
