@@ -55,7 +55,7 @@ public class PuzzleDay7_2 : PuzzleBase
             {
                 if (computers[prevComputerIndex].output.Count > outputIndexes[prevComputerIndex])
                 {
-                    computers[computerIndex].AddInput(computers[prevComputerIndex].output[outputIndexes[prevComputerIndex]]);
+                    computers[computerIndex].AddInput((int)computers[prevComputerIndex].output[outputIndexes[prevComputerIndex]]);
                     outputIndexes[prevComputerIndex]++;
                 }
 
@@ -68,7 +68,7 @@ public class PuzzleDay7_2 : PuzzleBase
             }
             
             if(computers.LastOrDefault().output.LastOrDefault() > highestResult)
-                highestResult = computers.LastOrDefault().output.LastOrDefault();
+                highestResult = (int)computers.LastOrDefault().output.LastOrDefault();
         }
         }
         }

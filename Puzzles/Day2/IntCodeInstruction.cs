@@ -7,25 +7,85 @@ public abstract class IntCodeInstruction
     {
 
     }
+
+    protected long this[int index] 
+    {  
+         get {
+             while(index >= memory.Count)
+                memory.Add(0);
+             return memory[index];
+         }
+         private set {
+            while(index >= memory.Count)
+                memory.Add(0);
+             memory[index] = value;
+         }
+    }  
     
     public abstract int Identifier {get;}
 
-    public abstract int Execute(List<int> memory, List<InstructionMode> modes, int input, int index);
+    private List<long> memory;
+    private List<InstructionMode> modes;
+    protected int input;
+    protected int index;
+    protected int relativeBase;
+
+    public int Process(List<long> memory, List<InstructionMode> modes, int input, int relativeBase, int index)
+    {
+        this.memory = memory;
+        this.modes = modes;
+        this.input = input;
+        this.index = index;
+        this.relativeBase = relativeBase;
+        return Execute();
+    }
+
+    protected abstract int Execute();
+
+    protected long GetParameter(int paramIndex)
+    {
+        if(modes.Count > paramIndex)
+        {
+            if (modes[paramIndex] == InstructionMode.Immediate)
+                return this[index + paramIndex + 1];
+            if (modes[paramIndex] == InstructionMode.Relative)
+                return this[relativeBase + (int)this[index + paramIndex + 1]];
+
+        }
+        return this[(int)this[index + paramIndex + 1]];
+    }
+
+    protected void WriteParameter(int paramIndex, long value)
+    {
+        if(modes.Count > paramIndex)
+        {
+            if (modes[paramIndex] == InstructionMode.Relative)
+            {
+                this[relativeBase + (int)this[index + paramIndex + 1]] = value;
+                return;
+            }
+
+        }
+        
+        this[(int)this[index + paramIndex + 1]] = value;
+    }
 }
 
 public enum InstructionMode : int {
         Position = 0,
-        Immediate = 1
+        Immediate = 1,
+        Relative = 2
     }
 
 public class WriteInstruction : IntCodeInstruction
 {
     public override int Identifier => 3;
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
+    protected override int Execute()
     {
-        int value = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        memory[memory[index + 1]] = input;
+        long value = GetParameter(0);
+        WriteParameter(0, input);
+        //this[(int)this[index + 1]] = input;
         
         return index + 2;
     }
@@ -35,11 +95,11 @@ public class LogInstruction : IntCodeInstruction
 {
     public override int Identifier => 4;
 
-    public int output;
+    public long output;
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
+    protected override int Execute()
     {
-        int value = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
+        long value = GetParameter(0);
         this.output = value;
         return index + 2;
     }
@@ -47,39 +107,39 @@ public class LogInstruction : IntCodeInstruction
 
 public abstract class CompareInstruction : IntCodeInstruction
 {
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
+    protected override int Execute()
     {
-        int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];
+        long verb = GetParameter(0);
+        long noun = GetParameter(1);
         bool compare = Compare(verb, noun);
-        memory[memory[index + 3]] = compare ? 1 : 0;
+        WriteParameter(2, compare ? 1 : 0);
         return index + 4;
     }
 
-    protected abstract bool Compare(int verb, int noun);
+    protected abstract bool Compare(long verb, long noun);
 }
 
 
 public abstract class BoolInstruction : IntCodeInstruction
 {
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
+    protected override int Execute()
     {
-        int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];
+        long verb = GetParameter(0);
+        long noun = GetParameter(1);
         bool compare = Compare(verb);
         if (compare)
-            return noun;
+            return (int)noun;
         return index + 3;
     }
 
-    protected abstract bool Compare(int verb);
+    protected abstract bool Compare(long verb);
 }
 
 public class LessThan : CompareInstruction
 {
     public override int Identifier => 7;
 
-    protected override bool Compare(int verb, int noun)
+    protected override bool Compare(long verb, long noun)
     {
         return verb < noun;
     }
@@ -89,7 +149,7 @@ public class EqualsInstruction : CompareInstruction
 {
     public override int Identifier => 8;
 
-    protected override bool Compare(int verb, int noun)
+    protected override bool Compare(long verb, long noun)
     {
         return verb == noun;
     }
@@ -99,7 +159,7 @@ public class JumpTrue : BoolInstruction
 {
     public override int Identifier => 5;
 
-    protected override bool Compare(int verb)
+    protected override bool Compare(long verb)
     {
         return verb != 0;
     }
@@ -109,7 +169,7 @@ public class JumpFalse : BoolInstruction
 {
     public override int Identifier => 6;
 
-    protected override bool Compare(int verb)
+    protected override bool Compare(long verb)
     {
         return verb == 0;
     }
@@ -118,16 +178,16 @@ public class JumpFalse : BoolInstruction
 public abstract class MathInstruction : IntCodeInstruction
 {
 
-    public override int Execute(List<int> memory, List<InstructionMode> modes, int input, int index)
+    protected override int Execute()
     {
-        int verb = modes.Count > 0 && modes[0] == InstructionMode.Immediate ? memory[index + 1] : memory[memory[index + 1]];
-        int noun = modes.Count > 1 && modes[1] == InstructionMode.Immediate ? memory[index + 2] : memory[memory[index + 2]];
-        int sum = Calculate(verb, noun);
-        memory[memory[index + 3]] = sum;
+        long verb = GetParameter(0);
+        long noun = GetParameter(1);
+        long sum = Calculate(verb, noun);
+        WriteParameter(2, sum);
         return index + 4;
     }
 
-    protected abstract int Calculate(int verb, int noun);
+    protected abstract long Calculate(long verb, long noun);
 }
 
 public class AddInstruction : MathInstruction
@@ -138,7 +198,7 @@ public class AddInstruction : MathInstruction
     }
     public override int Identifier => 1;
 
-    override protected int Calculate(int verb, int noun)
+    override protected long Calculate(long verb, long noun)
     {
         return verb + noun;
     }
@@ -148,8 +208,24 @@ public class MultiplyInstruction : MathInstruction
 {
     public override int Identifier => 2;
 
-    override protected int Calculate(int verb, int noun)
+    override protected long Calculate(long verb, long noun)
     {
         return verb * noun;
+    }
+}
+
+public class ModifyRelativeBase : IntCodeInstruction
+{
+    public override int Identifier => 9;
+
+    public int modifiedBase;
+
+    protected override int Execute()
+    {
+        long value = GetParameter(0);
+        relativeBase += (int)value;
+        modifiedBase = relativeBase;
+        
+        return index + 2;
     }
 }

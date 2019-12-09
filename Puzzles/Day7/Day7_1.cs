@@ -42,7 +42,7 @@ public class PuzzleDay7_1 : PuzzleBase
                     computer.AddInput(inputValue);
                     computer.Execute();
                 }
-                inputValue = computer.output.LastOrDefault();
+                inputValue = (int)computer.output.LastOrDefault();
             }
             if(inputValue > highestResult)
                 highestResult = inputValue;
