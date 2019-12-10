@@ -1,15 +1,17 @@
 using System;
+using System.Diagnostics;
 using System.IO;
 
 public abstract class PuzzleBase
 {
+    private Stopwatch watch = new Stopwatch();
     public PuzzleBase()
     {
-
     }
 
     public void ReadFile()
     {
+        watch.Start();
         var lines = File.ReadAllLines(GetPuzzlesDataPath());
         foreach(var line in lines)
             ParseLine(line);
@@ -22,7 +24,8 @@ public abstract class PuzzleBase
         Console.WriteLine("Solution for: "
             + GetType().Name
             + " "
-            + CalculateSolutions().ToString());
+            + CalculateSolutions().ToString() + " in " + watch.ElapsedMilliseconds.ToString() + "ms");
+        watch.Stop();
     }
 
     

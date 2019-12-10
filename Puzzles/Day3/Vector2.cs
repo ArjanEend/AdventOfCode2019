@@ -37,6 +37,11 @@ public struct IntVector2
         return !(a == b);
     }
 
+    public float Magnitude()
+    {
+        return MathF.Sqrt(x * x + y * y);
+    }
+
     public IntVector2 Intersection(IntVector2 dir, IntVector2 other, IntVector2 otherDir)
     {
         if(((dynamic)x == other.x && (dynamic)y == other.y) || (x == (-(dynamic)other.x) && y == (-(dynamic)other.y)))

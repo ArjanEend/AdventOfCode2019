@@ -3,13 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class PuzzleDay9_1 : PuzzleBase
+public class PuzzleDay9_2 : PuzzleBase
 {
     private List<long> inputs = new List<long>();
 
     public override object CalculateSolutions()
     {
-        IntCodeComputer computer = new IntCodeComputer(inputs, new List<int>(){1});
+        IntCodeComputer computer = new IntCodeComputer(inputs, new List<int>(){2});
         while(!computer.done)
         {
             computer.Execute();
