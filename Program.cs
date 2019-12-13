@@ -10,7 +10,7 @@ namespace AdventOfCode2019
         static void Main(string[] args)
         {
             //Console.WriteLine("Input Search string");
-            var input = "Day12";//Console.ReadLine();
+            var input = "Day13";//Console.ReadLine();
             IEnumerable<PuzzleBase> puzzles = typeof(PuzzleBase)
                 .Assembly.GetTypes()
                 .Where(t => t.IsSubclassOf(typeof(PuzzleBase)) && !t.IsAbstract && (string.IsNullOrEmpty(input) || t.Name.Contains(input)))
