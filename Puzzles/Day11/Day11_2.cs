@@ -14,7 +14,7 @@ public class PuzzleDay11_2 : PuzzleBase
 
         Dictionary<IntVector2, RobotColor> panels = new Dictionary<IntVector2, RobotColor>();
 
-        panels.Add(robot.Position, RobotColor.WHITE);
+        panels.Add(robot.Position, RobotColor.BLACK);
         while(!robot.Done)
         {
             var pos = robot.Position;

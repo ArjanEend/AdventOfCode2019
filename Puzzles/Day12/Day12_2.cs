@@ -10,7 +10,7 @@ public class PuzzleDay12_2 : PuzzleBase
     public override object CalculateSolutions()
     {
         Vector3 loopValues = new Vector3(-1, -1, -1);
-        for (int i = 1; ; i++)
+        for (long i = 1; ; i++)
         {
             for (int j = 0; j < moons.Count; j++)
             {
@@ -74,17 +74,17 @@ public class PuzzleDay12_2 : PuzzleBase
                 break;
         }
 
-        return lcm(lcm((int)loopValues.x, (int)loopValues.y), (int)loopValues.z);
+        return lcm(lcm((long)loopValues.x, (long)loopValues.y), (long)loopValues.z);
     }
 
-    private int gcd(int a, int b) 
+    private long gcd(long a, long b) 
     { 
         if (b == 0) 
             return a;  
         return gcd(b, a % b);  
     } 
       
-    private int lcm(int a, int b) 
+    private long lcm(long a, long b) 
     { 
         return (a * b) / gcd(a, b); 
     }
