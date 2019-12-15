@@ -12,7 +12,7 @@ public class PuzzleDay14_2 : PuzzleBase
         string production = "FUEL";
         Dictionary<string, long> amounts = new Dictionary<string, long>();
         amounts["ORE"] = 1000000000000;
-        long factor = 1000000;
+        long factor = 1000000000;
         //Output of part 1
         while(amounts["ORE"] > 158482)
         {
@@ -20,7 +20,7 @@ public class PuzzleDay14_2 : PuzzleBase
             Convert("FUEL", factor, testAmounts);
             while(factor > 1 && amounts["ORE"] + testAmounts["ORE"] < 0)
             {
-                factor /= 10;
+                factor /= 2;
                 if (factor <= 0)
                     factor = 1;
                 testAmounts.Clear();

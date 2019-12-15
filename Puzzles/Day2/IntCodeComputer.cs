@@ -33,6 +33,12 @@ public class IntCodeComputer
         }
     }
 
+    public void ResetIndex()
+    {
+        executionIndex = 0;
+        inputIndex = 0;
+    }
+
     public IntCodeComputer(List<long> opCodes, List<int> inputs = null)
     {
         this.memory = opCodes;
