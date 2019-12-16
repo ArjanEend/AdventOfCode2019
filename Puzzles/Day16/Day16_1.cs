@@ -29,8 +29,9 @@ public class PuzzleDay16_1 : PuzzleBase
                 int value = 0;
                 for(int j = 0; j < values.Count; j++)
                 {
-                    int loopedIndex = (j + 1) % pattern.Count;
-                    value += (values[j] * pattern[loopedIndex]);
+                    int patternNumber = basePattern[((j + 1) / (i + 1)) % 4];
+//                    int loopedIndex = (j + 1) % pattern.Count;
+                    value += values[j] * patternNumber;
                 }
                 value %= 10;
                 
@@ -38,6 +39,9 @@ public class PuzzleDay16_1 : PuzzleBase
             }
 
             values = newValues;
+
+            
+            Console.WriteLine($"{values[values.Count - 3]}{values[values.Count - 2]}{values[values.Count - 1]}");
             
             Console.WriteLine($"{values[0]}{values[1]}{values[2]}{values[3]}{values[4]}{values[5]}{values[6]}{values[7]}");
         }
