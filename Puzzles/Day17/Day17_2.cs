@@ -10,7 +10,7 @@ public class PuzzleDay17_2 : PuzzleBase
 
     private List<long> inputs = new List<long>();
 
-    IntVector2 up = new IntVector2(0, 1);
+    IntVector2 up = new IntVector2(0, -1);
     IntVector2 down = new IntVector2(0, -1);
     IntVector2 right = new IntVector2(1, 0);
     IntVector2 left = new IntVector2(-1, 0);
@@ -24,12 +24,12 @@ public class PuzzleDay17_2 : PuzzleBase
 
     public override object CalculateSolutions()
     {
-        var comp = new IntCodeComputer(inputs);
+        var comp = new IntCodeComputer(inputs.ToList());
 
         Dictionary<IntVector2, char> tiles = new Dictionary<IntVector2, char>();
 
         List<IntVector2> walkedTiles = new List<IntVector2>();
-        List<Instructions> instructions = new List<Instructions>();
+        List<string> instructions = new List<string>();
 
         comp.Execute();
 
@@ -62,12 +62,18 @@ public class PuzzleDay17_2 : PuzzleBase
         IntVector2 forward = 
             new IntVector2((int)MathF.Round(MathF.Cos(MathF.PI * angle / 180f)), (int)MathF.Round(MathF.Sin(MathF.PI * angle / 180f)));
 
-        while(!walkedTiles.Contains(current + forward))
+        int steps = 0;
+        while(true)
         {
             if (!tiles.ContainsKey(current + forward) || tiles[current + forward] != '#')
             {
-                float leftAngle = angle + 90f;
-                float rightAngle = angle - 90f;
+                if (steps > 0)
+                {
+                    instructions.Add(steps.ToString());
+                    steps = 0;
+                }
+                float leftAngle = angle - 90f;
+                float rightAngle = angle + 90f;
 
                 IntVector2 right = 
                     new IntVector2((int)MathF.Round(MathF.Cos(MathF.PI * rightAngle / 180f)), (int)MathF.Round(MathF.Sin(MathF.PI * rightAngle / 180f)));
@@ -77,61 +83,118 @@ public class PuzzleDay17_2 : PuzzleBase
 
                 if (tiles.ContainsKey(current + right) && tiles[current + right] == '#')
                 {
-                    angle -= 90f;
+                    angle += 90f;
                     forward = right;
-                    instructions.Add(Instructions.RIGHT);
+                    instructions.Add("R");
                     continue;
                 }
                 if (tiles.ContainsKey(current + left) && tiles[current + left] == '#')
                 {
-                    angle += 90f;
+                    angle -= 90f;
                     forward = left;
-                    instructions.Add(Instructions.LEFT);
+                    instructions.Add("L");
                     continue;
                 }
                 break;
             }
             current += forward;
             walkedTiles.Add(current);
-            instructions.Add(Instructions.FORWARD);
+            steps++;
         }
-        //lines.Add(startLine, current);
-        /*int sum = 0;
-        for(y = 0; y <= highestY; y++)
-        {
-            for(x = 0; x <= highestX; x++)
-            {
-                IntVector2 current = new IntVector2(x, y);
-                if(tiles.ContainsKey(current) && tiles[current] == '#' && tiles.ContainsKey(current + up) && tiles.ContainsKey(current + down) && tiles.ContainsKey(current + left) && tiles.ContainsKey(current + right)
-                    && tiles[current + up] == '#' && tiles[current + down] == '#' && tiles[current + left] == '#' && tiles[current + right] == '#')
-                {
-                    sum += x * y;
-                    tiles[current] = 'O';
-                    IntVector2 top = current;
-                    IntVector2 bottom = current;
-                    while (tiles[top + up] == '#')
-                        top.y += 1;
-                    while (tiles[bottom])
-                }
-            }
-        }*/
 
+        List<string> patterns = new List<string>();
+        List<int> segmentList = new List<int>();
+        for(int i = 0; i < instructions.Count; i += 2)
+        {
+            string pattern = instructions[i];
+            pattern += ",";
+            pattern += instructions[i + 1];
+            if(!patterns.Contains(pattern))
+                patterns.Add(pattern);
+            segmentList.Add(patterns.IndexOf(pattern));
+        }
+
+        List<int[]> uniqueSegments = new List<int[]>();
+        for(int i = 0; i < segmentList.Count; i++)
+        {
+            List<int> segment = new List<int>{segmentList[i]};
+            for(int j = i + 1; j < i + 8 && j < segmentList.Count; j++)
+            {
+                segment.Add(segmentList[j]);
+                if (j - i > 5)
+                    uniqueSegments.Add(segment.ToArray());
+            }
+        }
+
+
+
+        string mainPattern = instructions[0];
+        for(int i = 1; i < instructions.Count; i++)
+        {
+            mainPattern += ",";
+            mainPattern += instructions[i];
+        }
+
+/*
+0,1,0,2,3,3,0,0,1,0,2,3,4,4,0,3,3,0,3,4,4,0,0,1,0,2,3,3,0,0,1,0,2,3,4,4,0
+
+0,1,0,2
+3,3,0
+3,4,4,0
+
+4,4,0
+
+0,1,0,2,3,3,0
+0,1,0,2,3,4,4,0
+3,3,0,3,4,4,0
+*/
+        //var newPatterns = uniqueSegments.Where(s => s.Length > 5).GroupBy(p => p).OrderByDescending(pp => pp.Count()).Take(9).Select(gp => gp.Key).ToList();
+
+        var newPatterns = new List<int[]>{new int[]{0,1,0,2}, new int[]{3,3,0}, new int[]{3,4,4,0}};
+
+        List<string> functions = new List<string>();
+        for(int i = 0; i < newPatterns.Count; i++)
+        {
+            string patternstr = "";
+            foreach(var index in newPatterns[i])
+            {
+                patternstr += patterns[index];
+                patternstr += ",";
+            }
+            patternstr = patternstr.Substring(0, patternstr.Length - 1);
+            if(patternstr.Length >= 20)
+                throw new Exception("INstruction too long");
+            string replace = "A";
+            if (i == 1)
+                replace = "B";
+            if (i == 2)
+                replace = "C";
+            functions.Add(patternstr);
+            mainPattern = mainPattern.Replace(patternstr, replace);
+        }
+
+        inputs[0] = 2;
+        List<int> computerInput = new List<int>();
+        computerInput.AddRange(mainPattern.Select(c => (int)c));
+        computerInput.Add(10);
+        for(int i = 0; i < functions.Count; i++)
+        {
+            computerInput.AddRange(functions[i].Select(c => (int)c));
+            computerInput.Add(10);
+        }
+        computerInput.Add((int)'y');
+        computerInput.Add(10);
+
+        comp = new IntCodeComputer(inputs, computerInput);
+        comp.Execute();
 
         StringBuilder sb = new StringBuilder();
-        sb.Append("\n");
-        for(y = 0; y <= highestY; y++)
-        {
-            for(x = 0; x <= highestX; x++)
-            {
-                var pos = new IntVector2(x, y);
-                sb.Append(tiles.ContainsKey(pos) ? tiles[pos] : ' ');
-            }
-            sb.Append("\n");
-        }
+        foreach(var output in comp.output)
+            sb.Append((char)output);
 
         Console.WriteLine(sb.ToString());
 
-        return instructions.Count;
+        return comp.output.LastOrDefault();
     }
 
     protected override string GetPuzzleData()
