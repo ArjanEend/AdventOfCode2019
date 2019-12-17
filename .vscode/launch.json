@@ -12,7 +12,7 @@
             "program": "${workspaceFolder}/bin/Debug/netcoreapp3.0/AdventOfCode2019.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
+            "console": "externalTerminal",
             "stopAtEntry": false
         },
         {

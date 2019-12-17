@@ -9,17 +9,22 @@ namespace AdventOfCode2019
     {
         static void Main(string[] args)
         {
-            //Console.WriteLine("Input Search string");
-            var input = "Day16";//Console.ReadLine();
-            IEnumerable<PuzzleBase> puzzles = typeof(PuzzleBase)
-                .Assembly.GetTypes()
-                .Where(t => t.IsSubclassOf(typeof(PuzzleBase)) && !t.IsAbstract && (string.IsNullOrEmpty(input) || t.Name.Contains(input)))
-                .Select(t => (PuzzleBase)Activator.CreateInstance(t));
-
-            foreach(var puzzle in puzzles)
+            Console.WriteLine("Input Search string");
+            while (true)
             {
-                puzzle.ReadFile();
-                puzzle.LogPuzzleSolution();
+                var input = Console.ReadLine();
+                if(input == "q")
+                    return;
+                IEnumerable<PuzzleBase> puzzles = typeof(PuzzleBase)
+                    .Assembly.GetTypes()
+                    .Where(t => t.IsSubclassOf(typeof(PuzzleBase)) && !t.IsAbstract && (string.IsNullOrEmpty(input) || t.Name.Contains(input)))
+                    .Select(t => (PuzzleBase)Activator.CreateInstance(t));
+
+                foreach(var puzzle in puzzles)
+                {
+                    puzzle.ReadFile();
+                    puzzle.LogPuzzleSolution();
+                }
             }
         }
     }
