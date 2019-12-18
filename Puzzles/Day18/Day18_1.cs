@@ -14,21 +14,48 @@ public class PuzzleDay18_1 : PuzzleBase
     {
         int steps = 0;
         List<char> collectedKeys = new List<char>();
-        var keys = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToLower()).OrderBy(k => k.Value).ToList();
-        var doors = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToUpper()).ToList();
-        var validPositions = map.Where(m => m.Value != '#' || collectedKeys.Contains(m.Value.ToString().ToLower()[0])).Select(_ => _.Key).ToList();
+        var keys = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToLower()).ToDictionary(s => s.Key, s => s.Value);
+        var doors = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToUpper()).ToDictionary(s => s.Key, s => s.Value);
+        var validPositions = map.Where(m => m.Value != '#').Select(_ => _.Key).ToList();
         var startPos = map.Where(m => m.Value == '@').FirstOrDefault().Key;
+
+        Dictionary<char, char> lockedChars = new Dictionary<char, char>();
         
+        foreach(var kv in keys)
+        {
+            var calcPath = PathFinder.FindPath(validPositions, startPos, kv.Key);
+            if (calcPath.Count > 1 && calcPath.Last() == kv.Key)
+            {
+                while(calcPath.Count > 0 && !doors.ContainsKey(calcPath.Last()))
+                    calcPath.RemoveAt(calcPath.Count - 1);
+                if(calcPath.Count > 0)
+                    lockedChars.Add(kv.Value, doors[calcPath.Last()]);
+            }
+        }
+
+        List<char> priorityList = new List<char>();
+        foreach(var kv in lockedChars)
+        {
+            var value = ToLower(kv.Value);
+            while (lockedChars.ContainsKey(value))
+            {
+                value = ToLower(lockedChars[value]);
+                if(priorityList.Contains(value) || !lockedChars.ContainsKey(value))
+                    continue;
+                priorityList.Insert(0, value);
+            }
+        }
+
         while(keys.Count > 0)
         {
             var walkableTiles = validPositions.Where(p => map[p] == '.' || map[p] == '@' || map[p].ToString().ToLower() == map[p].ToString() || collectedKeys.Contains(map[p].ToString().ToLower()[0])).ToList();
 
             int shortest = int.MaxValue;
             List<IntVector2> path = null;
-            for(int i = 0; i < keys.Count; i++)
+            foreach(var kv in keys)
             {
-                var calcPath = PathFinder.FindPath(walkableTiles, startPos, keys[i].Key);
-                if (calcPath.Count > 1 && calcPath.Last() == keys[i].Key && calcPath.Count < shortest)
+                var calcPath = PathFinder.FindPath(walkableTiles, startPos, kv.Key);
+                if (calcPath.Count > 1 && calcPath.Last() == kv.Key && calcPath.Count < shortest)
                 {
                     path = calcPath;
                     shortest = path.Count;
@@ -37,7 +64,7 @@ public class PuzzleDay18_1 : PuzzleBase
 
             startPos = path.Last();
             steps += path.Count;
-            keys.Remove(new KeyValuePair<IntVector2, char>(path.Last(), map[path.Last()]));
+            keys.Remove(path.Last());
             collectedKeys.Add(map[path.Last()]);
         }
         
@@ -45,6 +72,11 @@ public class PuzzleDay18_1 : PuzzleBase
         DrawMap(map);
 
         return steps;
+    }
+
+    private char ToLower(char c)
+    {
+        return c.ToString().ToLower()[0];
     }
 
     private void DrawMap(Dictionary<IntVector2, char> map)
