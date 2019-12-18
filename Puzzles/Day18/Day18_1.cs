@@ -15,36 +15,82 @@ public class PuzzleDay18_1 : PuzzleBase
         int steps = 0;
         List<char> collectedKeys = new List<char>();
         var keys = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToLower()).ToDictionary(s => s.Key, s => s.Value);
+        var keyMap = keys.ToDictionary(kv => kv.Value, kv => kv.Key);
         var doors = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToUpper()).ToDictionary(s => s.Key, s => s.Value);
         var validPositions = map.Where(m => m.Value != '#').Select(_ => _.Key).ToList();
         var startPos = map.Where(m => m.Value == '@').FirstOrDefault().Key;
 
-        Dictionary<char, char> lockedChars = new Dictionary<char, char>();
+        //Dictionary<char, char> lockedChars = new Dictionary<char, char>();
+
+        Dictionary<Tuple<char, char>, int> costs = new Dictionary<Tuple<char, char>, int>();
+
+        var graph = new Graph<char>();
+        graph.AddVertex(map[startPos]);
+        foreach(var kv in keys)
+            graph.AddVertex(kv.Value);
         
         foreach(var kv in keys)
         {
-            var calcPath = PathFinder.FindPath(validPositions, startPos, kv.Key);
+            var walkableTiles = validPositions.Where(m => !doors.Keys.Contains(m)).ToList();
+            var calcPath = PathFinder.FindPath(walkableTiles, startPos, kv.Key);
             if (calcPath.Count > 1 && calcPath.Last() == kv.Key)
             {
-                while(calcPath.Count > 0 && !doors.ContainsKey(calcPath.Last()))
-                    calcPath.RemoveAt(calcPath.Count - 1);
-                if(calcPath.Count > 0)
-                    lockedChars.Add(kv.Value, doors[calcPath.Last()]);
+                graph.AddEdge(map[startPos], kv.Value);
+                costs.Add(new Tuple<char, char>('@', kv.Value), calcPath.Count);
+            }
+            foreach(var kv2 in keys)
+            {
+                calcPath = PathFinder.FindPath(validPositions, kv.Key, kv2.Key);
+                if (calcPath.Count > 1 && calcPath.Last() == kv2.Key)
+                {
+                    graph.AddEdge(kv.Value, kv2.Value);
+                    costs.Add(new Tuple<char, char>(kv.Value, kv2.Value), calcPath.Count);
+                }
             }
         }
 
-        List<char> priorityList = new List<char>();
-        foreach(var kv in lockedChars)
+        var queue = new Queue<char>();
+        queue.Enqueue('@');
+        var previous = new Dictionary<char, char>();
+        while(queue.Count > 0)
         {
-            var value = ToLower(kv.Value);
-            while (lockedChars.ContainsKey(value))
+            var item = queue.Dequeue();
+            foreach (var neighbour in graph.AdjacencyList[item])
             {
-                value = ToLower(lockedChars[value]);
-                if(priorityList.Contains(value) || !lockedChars.ContainsKey(value))
+                if(previous.ContainsKey(neighbour))
                     continue;
-                priorityList.Insert(0, value);
+                
+                previous[neighbour] = item;
+                queue.Enqueue(neighbour);
             }
         }
+
+        List<List<char>> paths = new List<List<char>>();
+        Dictionary<List<char>, int> pathCosts = new Dictionary<List<char>, int>();
+        foreach(var kv in keys)
+        {
+            var path = new List<char>();
+            int cost = 0;
+
+            var current = kv.Value;
+            while (!current.Equals('@') && previous.ContainsKey(current)) 
+            {
+                path.Add(current);
+                cost += costs[new Tuple<char, char>(previous[current], current)];
+                current = previous[current];
+            }
+
+            //cost += costs[new Tuple<char, char>('@', current)];
+            path.Add('@');
+            path.Reverse();
+
+            paths.Add(path);
+            pathCosts.Add(path, cost);
+        }
+
+        paths = paths.OrderBy(p => pathCosts[p]).ToList();
+
+        /*longestList.AddRange(lockedChars.Select(c => c.Key).Where(c => !longestList.Contains(c)).OrderBy(c => longestList.IndexOf(c)));
 
         while(keys.Count > 0)
         {
@@ -52,26 +98,74 @@ public class PuzzleDay18_1 : PuzzleBase
 
             int shortest = int.MaxValue;
             List<IntVector2> path = null;
-            foreach(var kv in keys)
+            foreach(var kv in lockedChars)
             {
-                var calcPath = PathFinder.FindPath(walkableTiles, startPos, kv.Key);
-                if (calcPath.Count > 1 && calcPath.Last() == kv.Key && calcPath.Count < shortest)
+                var calcPath = PathFinder.FindPath(walkableTiles, startPos, keyMap[kv.Key]);
+                if (calcPath.Count > 1 && calcPath.Last() == keyMap[ToLower(kv.Key)] && calcPath.Count < shortest)
                 {
                     path = calcPath;
                     shortest = path.Count;
                 }
             }
 
+            var foundKeys = path.Where(v => keys.ContainsKey(v)).ToList();
+            for(int i = 0; i < foundKeys.Count; i++)
+            {
+                keys.Remove(foundKeys[i]);
+                collectedKeys.Add(map[foundKeys[i]]);
+            }
             startPos = path.Last();
             steps += path.Count;
-            keys.Remove(path.Last());
-            collectedKeys.Add(map[path.Last()]);
         }
+        /*for(int i = 0; i < longestList.Count; i++)
+        {
+            //var walkableTiles = validPositions.Where(p => map[p] == '.' || map[p] == '@' || map[p].ToString().ToLower() == map[p].ToString() || collectedKeys.Contains(map[p].ToString().ToLower()[0])).ToList();
+
+            var calcPath = PathFinder.FindPath(validPositions, startPos, map.Where(m => m.Value == longestList[i]).FirstOrDefault().Key);
+            /*if (calcPath.Count > 1 && calcPath.Last() == kv.Key && calcPath.Count < shortest)
+            {
+                path = calcPath;
+                shortest = path.Count;
+            }
+
+            startPos = calcPath.Last();
+            steps += calcPath.Count;
+            keys.Remove(calcPath.Last());
+            collectedKeys.Add(map[calcPath.Last()]);
+        }*/
+
+        /*
         
+        */
 
         DrawMap(map);
 
         return steps;
+    }
+
+    public class Graph<T> 
+    {
+        public Graph() {
+
+        }
+
+        public Dictionary<T, HashSet<T>> AdjacencyList { get; } = new Dictionary<T, HashSet<T>>();
+
+        public void AddVertex(T vertex) {
+            AdjacencyList[vertex] = new HashSet<T>();
+        }
+
+        public void AddEdge(T a, T b)
+        {
+            AddEdge(new Tuple<T,T>(a, b));
+        }
+
+        public void AddEdge(Tuple<T,T> edge) {
+            if (AdjacencyList.ContainsKey(edge.Item1) && AdjacencyList.ContainsKey(edge.Item2)) {
+                AdjacencyList[edge.Item1].Add(edge.Item2);
+                AdjacencyList[edge.Item2].Add(edge.Item1);
+            }
+        }
     }
 
     private char ToLower(char c)
