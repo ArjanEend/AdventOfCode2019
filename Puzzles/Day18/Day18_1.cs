@@ -41,10 +41,23 @@ public class PuzzleDay18_1 : PuzzleBase
             foreach(var kv2 in keys)
             {
                 calcPath = PathFinder.FindPath(validPositions, kv.Key, kv2.Key);
-                if (calcPath.Count > 1 && calcPath.Last() == kv2.Key)
+                if (calcPath.Count > 1)
                 {
-                    graph.AddEdge(kv.Value, kv2.Value);
-                    costs.Add(new Tuple<char, char>(kv.Value, kv2.Value), calcPath.Count);
+                    for(int i = 1; i < calcPath.Count; i++)
+                    {
+                        if (doors.ContainsKey(calcPath[i]) && ToLower(doors[calcPath[i]]) != kv.Value)
+                        {
+                            //graph.AddEdge(kv.Value, ToLower(doors[calcPath[i]]));
+                            //costs.Add(new Tuple<char, char>(kv.Value, kv2.Value), calcPath.Count - 1);
+                            i = calcPath.Count;
+                            continue;
+                        }
+                        if (calcPath[i] == kv2.Key)
+                        {
+                            graph.AddEdge(kv.Value, kv2.Value);
+                            costs.Add(new Tuple<char, char>(kv.Value, kv2.Value), calcPath.Count - 1);
+                        }
+                    }
                 }
             }
         }
