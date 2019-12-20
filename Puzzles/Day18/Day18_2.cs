@@ -11,9 +11,10 @@ public class PuzzleDay18_2 : PuzzleBase
     int height = 0;
     private Dictionary<IntVector2, char> keys;
     private Dictionary<IntVector2, char> doors;
-
+    private Dictionary<char, IntVector2> lookup;
     private Dictionary<(char, char), List<IntVector2>> cachedPaths = new Dictionary<(char, char), List<IntVector2>>();
 
+    private List<char> robots = new List<char>{'1', '2', '3', '4'};
 
     public override object CalculateSolutions()
     {
@@ -22,7 +23,7 @@ public class PuzzleDay18_2 : PuzzleBase
         keys = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToLower()).ToDictionary(s => s.Key, s => s.Value);
         var keyMap = keys.ToDictionary(kv => kv.Value, kv => kv.Key);
         doors = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToUpper()).ToDictionary(s => s.Key, s => s.Value);
-        
+
         var startPos = map.Where(m => m.Value == '@').FirstOrDefault().Key;
         var nextPos = startPos;
         nextPos.y = 0;
@@ -49,28 +50,41 @@ public class PuzzleDay18_2 : PuzzleBase
         map[robotPos] = '3';
         robotPos.x -= 2;
         map[robotPos] = '4';
-        
+
+        lookup = map.Where(m => m.Value != '#' && m.Value != '.').ToDictionary(v => v.Value, v => v.Key);
+        DrawMap(map);
         
         var validPositions = map.Where(m => m.Value != '#').Select(_ => _.Key).ToList();
 
         //Dictionary<char, char> lockedChars = new Dictionary<char, char>();
+        for (int i = 0; i < robots.Count; i++)
+        {
+            foreach(var kv in keys)
+            {
+                var path = PathFinder.FindPath(validPositions, lookup[robots[i]], kv.Key);
+                if(path.Last() != kv.Key)
+                    continue;
+                cachedPaths.Add((robots[i], kv.Value), path);
+                cachedPaths.Add((kv.Value, robots[i]), path);
+            }
+        }
+        
         foreach(var kv in keys)
         {
-            var path = PathFinder.FindPath(validPositions, startPos, kv.Key);
-            cachedPaths.Add(('@', kv.Value), path);
-            cachedPaths.Add((kv.Value, '@'), path);
             foreach(var kv2 in keys)
             {
-                if (kv.Key == kv2.Key || cachedPaths.ContainsKey((kv.Value, kv2.Value)))
-                    continue;
-                path = PathFinder.FindPath(validPositions, kv.Key, kv2.Key);
-                cachedPaths.Add((kv2.Value, kv.Value), path);
-                cachedPaths.Add((kv.Value, kv2.Value), path);
+                    if (kv.Key == kv2.Key || cachedPaths.ContainsKey((kv.Value, kv2.Value)))
+                        continue;
+                    var path = PathFinder.FindPath(validPositions, kv.Key, kv2.Key);
+                    if(path.Last() != kv2.Key)
+                        continue;
+                    cachedPaths.Add((kv2.Value, kv.Value), path);
+                    cachedPaths.Add((kv.Value, kv2.Value), path);
             }
         }
 
-        var state = new State('@', "", 0);
-        var visited = new Dictionary<(char, string), int>();
+        var state = new State("1234", "", 0);
+        var visited = new Dictionary<(string, string), int>();
         PopulateEdges(validPositions, state, visited);
         
         
@@ -97,46 +111,50 @@ public class PuzzleDay18_2 : PuzzleBase
         return visited[bestState];
     }
 
-    private void PopulateEdges(List<IntVector2> validPositions, State startState, Dictionary<(char, string), int> visited)
+    private void PopulateEdges(List<IntVector2> validPositions, State startState, Dictionary<(string, string), int> visited)
     {
         var queue = new Queue<State>();
         queue.Enqueue(startState);
         while(queue.Count > 0)
         {
             var state = queue.Dequeue();
-            var startPos = map.Where(m => m.Value == state.current).FirstOrDefault().Key;
-            foreach(var kv in keys)
+            for (int i = 0; i < robots.Count; i++)
             {
-                if (state.keys.Contains(kv.Value))
-                    continue;
-                //var walkableTiles = validPositions.Where(m => state.keys.ToUpper().Contains(map[m]) || !doors.Keys.Contains(m)).ToList();
-                var calcPath = cachedPaths[(state.current, kv.Value)];
-                var filterTiles = doors.Where(d => !state.keys.ToUpper().Contains(d.Value)).Select(d => d.Key).ToList();
-                if (calcPath.Count > 1 && calcPath.Intersect(filterTiles).Count() == 0)
+                var startPos = lookup[robots[i]];
+                foreach(var kv in keys)
                 {
-                    if (state.keys.Length < 2)
-                        Console.Write($"Retrieving key {kv.Value}");
-                    var newState = state;
-                    newState.keys = String.Concat((state.keys + kv.Value).OrderBy(c => c));
-                    newState.steps += calcPath.Count - 1;
-                    newState.current = kv.Value;
+                    if (state.keys.Contains(kv.Value))
+                        continue;
+                    //var walkableTiles = validPositions.Where(m => state.keys.ToUpper().Contains(map[m]) || !doors.Keys.Contains(m)).ToList();
+                    if (!cachedPaths.ContainsKey((state.current[i], kv.Value)))
+                        continue;
 
-                    var tuple = (newState.current, newState.keys);
-                    if (visited.ContainsKey(tuple))
+                    var calcPath = cachedPaths[(state.current[i], kv.Value)];
+                    var filterTiles = doors.Where(d => !state.keys.ToUpper().Contains(d.Value)).Select(d => d.Key).ToList();
+                    if (calcPath.Count > 1 && calcPath.Intersect(filterTiles).Count() == 0)
                     {
-                        if (visited[tuple] <= newState.steps)
-                            continue;
-                        visited[tuple] = newState.steps;
-                    } else{
-                        visited.Add(tuple, newState.steps);
-                    }
+                        if (state.keys.Length < 2)
+                            Console.Write($"Retrieving key {kv.Value}");
+                        var newState = state;
+                        newState.keys = String.Concat((state.keys + kv.Value).OrderBy(c => c));
+                        newState.steps += calcPath.Count - 1;
+                        newState.current = newState.current.Remove(i, 1).Insert(i, kv.Value.ToString());
 
-                    queue.Enqueue(newState);
-                    //PopulateEdges(validPositions, newState, visited);
+                        var tuple = (newState.current, newState.keys);
+                        if (visited.ContainsKey(tuple))
+                        {
+                            if (visited[tuple] <= newState.steps)
+                                continue;
+                            visited[tuple] = newState.steps;
+                        } else{
+                            visited.Add(tuple, newState.steps);
+                        }
+
+                        queue.Enqueue(newState);
+                    }
                 }
             }
         }
-        
     }
 
     public class Graph<T> 
@@ -165,13 +183,13 @@ public class PuzzleDay18_2 : PuzzleBase
         }
     }
 
-    public struct State
+    private struct State
     {
-        public char current;
+        public string current;
         public string keys;
         public int steps;
 
-        public State(char current, string keys, int steps)
+        public State(string current, string keys, int steps)
         {
             this.current = current;
             this.keys = keys;

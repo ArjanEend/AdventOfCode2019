@@ -137,7 +137,7 @@ public class PuzzleDay18_1 : PuzzleBase
         }
     }
 
-    public struct State
+    private struct State
     {
         public char current;
         public string keys;
