@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-public class PuzzleDay18_1 : PuzzleBase
+public class PuzzleDay18_2 : PuzzleBase
 {
     Dictionary<IntVector2, char> map = new Dictionary<IntVector2, char>();
     int height = 0;
@@ -22,8 +22,36 @@ public class PuzzleDay18_1 : PuzzleBase
         keys = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToLower()).ToDictionary(s => s.Key, s => s.Value);
         var keyMap = keys.ToDictionary(kv => kv.Value, kv => kv.Key);
         doors = map.Where(m => m.Value != '#' && m.Value != '.' && m.Value != '@').Where(m => m.Value.ToString() == m.Value.ToString().ToUpper()).ToDictionary(s => s.Key, s => s.Value);
-        var validPositions = map.Where(m => m.Value != '#').Select(_ => _.Key).ToList();
+        
         var startPos = map.Where(m => m.Value == '@').FirstOrDefault().Key;
+        var nextPos = startPos;
+        nextPos.y = 0;
+        while(map.ContainsKey(nextPos))
+        {
+            map[nextPos] = '#';
+            nextPos.y ++;
+        }
+        nextPos = startPos;
+        nextPos.x = 0;
+        while(map.ContainsKey(nextPos))
+        {
+            map[nextPos] = '#';
+            nextPos.x ++;
+        }
+        
+        var robotPos = startPos;
+        robotPos.x -= 1;
+        robotPos.y -= 1;
+        map[robotPos] = '1';
+        robotPos.x += 2;
+        map[robotPos] = '2';
+        robotPos.y += 2;
+        map[robotPos] = '3';
+        robotPos.x -= 2;
+        map[robotPos] = '4';
+        
+        
+        var validPositions = map.Where(m => m.Value != '#').Select(_ => _.Key).ToList();
 
         //Dictionary<char, char> lockedChars = new Dictionary<char, char>();
         foreach(var kv in keys)

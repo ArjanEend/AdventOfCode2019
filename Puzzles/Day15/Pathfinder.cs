@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 
 public class PathFinder {
- 
+    private static IntVector2 up;
+
     public static List<IntVector2> FindPath(List<IntVector2> allowedTiles, IntVector2 start, IntVector2 end)
     {
         Dictionary<IntVector2, float> g_scores = new Dictionary<IntVector2, float>();
@@ -37,10 +38,10 @@ public class PathFinder {
                 float g_score = g_scores[current] + RelativeScore(current, neighbor);
                 float f_score = g_score + RelativeScore(neighbor, end);
  
-                if (closed.Contains(neighbor) && g_score >= g_scores[neighbor])
+                if (closed.Contains(neighbor))
                    continue;
  
-                if (!open.Contains(neighbor) || g_score < g_scores[neighbor])
+                if (!open.Contains(neighbor))
                 {
                     SetNavigation(navigationMap, neighbor, current);
                     SetScore(g_scores, f_scores, neighbor, g_score, f_score);
@@ -56,6 +57,12 @@ public class PathFinder {
 
     private static List<IntVector2> GetNeighbors(List<IntVector2> allowedTiles, IntVector2 current)
     {
+        List<IntVector2> returnValue = new List<IntVector2>();
+        
+        if (allowedTiles.Contains(current + up))
+            returnValue.Add(current + up);
+        if (allowedTiles.Contains(current - up))
+            returnValue.Add(current - up); 
         return allowedTiles.Where(tile => tile != current 
             && (tile.x == current.x && MathF.Abs(tile.y - current.y) < 2 || 
                 (tile.y == current.y && MathF.Abs(tile.x - current.x) < 2))).ToList();
