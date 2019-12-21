@@ -3,9 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 public class PathFinder {
-    private static IntVector2 up;
+    private static IntVector2 up = new IntVector2(0, -1);
+    
+    private static IntVector2 right = new IntVector2(1, 0);
 
-    public static List<IntVector2> FindPath(List<IntVector2> allowedTiles, IntVector2 start, IntVector2 end)
+    public delegate List<IntVector2> TilesDelegate(IntVector2 pos);
+
+    public static List<IntVector2> FindPath(List<IntVector2> allowedTiles, IntVector2 start, IntVector2 end, TilesDelegate extraTilesCallback = null)
     {
         Dictionary<IntVector2, float> g_scores = new Dictionary<IntVector2, float>();
         Dictionary<IntVector2, float> f_scores = new Dictionary<IntVector2, float>();
@@ -30,18 +34,18 @@ public class PathFinder {
             open.Remove(current);
             closed.Add(current);
  
-            var neighBors = GetNeighbors(allowedTiles, current);
+            var neighBors = GetNeighbors(allowedTiles, current, extraTilesCallback);
             for(int i = 0; i < neighBors.Count; i++)
             {
                IntVector2 neighbor = neighBors[i];
                  
-                float g_score = g_scores[current] + RelativeScore(current, neighbor);
+                float g_score = g_scores[current] + 1;//RelativeScore(current, neighbor);
                 float f_score = g_score + RelativeScore(neighbor, end);
  
-                if (closed.Contains(neighbor))
+                if (closed.Contains(neighbor) && g_score >= g_scores[neighbor])
                    continue;
  
-                if (!open.Contains(neighbor))
+                if (!open.Contains(neighbor) || g_score < g_scores[neighbor])
                 {
                     SetNavigation(navigationMap, neighbor, current);
                     SetScore(g_scores, f_scores, neighbor, g_score, f_score);
@@ -55,17 +59,23 @@ public class PathFinder {
         return ConstructPath(current, navigationMap);
     }
 
-    private static List<IntVector2> GetNeighbors(List<IntVector2> allowedTiles, IntVector2 current)
+    private static List<IntVector2> GetNeighbors(List<IntVector2> allowedTiles, IntVector2 current, TilesDelegate extraTilesCallback)
     {
         List<IntVector2> returnValue = new List<IntVector2>();
         
         if (allowedTiles.Contains(current + up))
             returnValue.Add(current + up);
         if (allowedTiles.Contains(current - up))
-            returnValue.Add(current - up); 
-        return allowedTiles.Where(tile => tile != current 
-            && (tile.x == current.x && MathF.Abs(tile.y - current.y) < 2 || 
-                (tile.y == current.y && MathF.Abs(tile.x - current.x) < 2))).ToList();
+            returnValue.Add(current - up);
+        if (allowedTiles.Contains(current + right))
+            returnValue.Add(current + right);
+        if (allowedTiles.Contains(current - right))
+            returnValue.Add(current - right);
+
+        if (extraTilesCallback != null)
+            returnValue.AddRange(extraTilesCallback(current));
+
+        return returnValue;
     }
 
     public static float RelativeScore(IntVector2 start, IntVector2 other)
