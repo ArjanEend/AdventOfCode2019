@@ -174,12 +174,12 @@ public class PuzzleDay17_2 : PuzzleBase
         }
 
         inputs[0] = 2;
-        List<int> computerInput = new List<int>();
-        computerInput.AddRange(mainPattern.Select(c => (int)c));
+        List<long> computerInput = new List<long>();
+        computerInput.AddRange(mainPattern.Select(c => (long)c));
         computerInput.Add(10);
         for(int i = 0; i < functions.Count; i++)
         {
-            computerInput.AddRange(functions[i].Select(c => (int)c));
+            computerInput.AddRange(functions[i].Select(c => (long)c));
             computerInput.Add(10);
         }
         computerInput.Add((int)'y');

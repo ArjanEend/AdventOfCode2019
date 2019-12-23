@@ -26,7 +26,7 @@ public class RepairBot
 
     public RepairBot(List<long> program)
     {
-        intCodeComputer = new IntCodeComputer(program, new List<int>());
+        intCodeComputer = new IntCodeComputer(program);
         Position = new IntVector2();
     }
 

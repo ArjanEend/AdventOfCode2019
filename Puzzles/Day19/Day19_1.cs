@@ -15,7 +15,7 @@ public class PuzzleDay19_1 : PuzzleBase
         {
             for (int x = 0; x < 50; x++)
             {
-                var computer = new IntCodeComputer(inputs.ToList(), new List<int>{x, y});
+                var computer = new IntCodeComputer(inputs.ToList(), new List<long>{x, y});
         
                 computer.Execute();
                 tiles.Add(new IntVector2(x, y), (int)computer.output.LastOrDefault());

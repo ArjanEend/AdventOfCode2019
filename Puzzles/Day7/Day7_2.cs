@@ -5,7 +5,7 @@ using System.Linq;
 
 public class PuzzleDay7_2 : PuzzleBase
 {
-    private List<int> inputs = new List<int>();
+    private List<long> inputs = new List<long>();
 
     private List<IntCodeComputer> computers = new List<IntCodeComputer>();
 
@@ -37,11 +37,11 @@ public class PuzzleDay7_2 : PuzzleBase
             var done = new List<bool>();
             for(int i = 0; i <values.Count; i++)
             {
-                var computerInputs = new List<int>();
+                var computerInputs = new List<long>();
                 computerInputs.Add(values[i]);
                 if(i == 0)
                     computerInputs.Add(0);
-                var program = new List<int>(inputs);
+                var program = new List<long>(inputs);
                 IntCodeComputer computer = new IntCodeComputer(program, computerInputs);
                 computers.Add(computer);
                 outputIndexes.Add(0);
@@ -87,7 +87,7 @@ public class PuzzleDay7_2 : PuzzleBase
     protected override void ParseLine(string line)
     {
         inputs.AddRange(line.Split(',')
-            .Where(str => int.TryParse(str, out int res))
-            .Select(str => int.Parse(str)));
+            .Where(str => long.TryParse(str, out long res))
+            .Select(str => long.Parse(str)));
     }
 }

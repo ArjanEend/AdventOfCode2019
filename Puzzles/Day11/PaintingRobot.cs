@@ -19,7 +19,7 @@ public class PaintingRobot
 
     public PaintingRobot(List<long> program)
     {
-        intCodeComputer = new IntCodeComputer(program, new List<int>());
+        intCodeComputer = new IntCodeComputer(program);
         position = new IntVector2();
     }
 

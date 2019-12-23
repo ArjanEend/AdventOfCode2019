@@ -16,7 +16,7 @@ public class PuzzleDay21_1 : PuzzleBase
 
     public override object CalculateSolutions()
     {
-        var comp = new IntCodeComputer(inputs, new List<int>());
+        var comp = new IntCodeComputer(inputs);
 
         var program = File.ReadAllText(Directory.GetCurrentDirectory() + "\\Data\\Scripts\\script.txt", Encoding.ASCII);
 

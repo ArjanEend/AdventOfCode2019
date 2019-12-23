@@ -12,7 +12,7 @@ public class PuzzleDay19_2 : PuzzleBase
     private int TestPos(int x, int y)
     {
         IntVector2 pos = new IntVector2(x, y);
-        var computer = new IntCodeComputer(inputs.ToList(), new List<int>{x, y});
+        var computer = new IntCodeComputer(inputs.ToList(), new List<long>{x, y});
 
         computer.Execute();
 

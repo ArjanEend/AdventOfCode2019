@@ -9,7 +9,7 @@ public class PuzzleDay9_2 : PuzzleBase
 
     public override object CalculateSolutions()
     {
-        IntCodeComputer computer = new IntCodeComputer(inputs, new List<int>(){2});
+        IntCodeComputer computer = new IntCodeComputer(inputs, new List<long>(){2});
         while(!computer.done)
         {
             computer.Execute();

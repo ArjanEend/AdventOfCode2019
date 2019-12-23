@@ -12,7 +12,7 @@ public class PuzzleDay13_2 : PuzzleBase
     public override object CalculateSolutions()
     {
         inputs[0] = 2;
-        var computer = new IntCodeComputer(inputs, new List<int>());
+        var computer = new IntCodeComputer(inputs);
 
         computer.AddInput(0);
         //var CursorLeft = Console.CursorLeft;

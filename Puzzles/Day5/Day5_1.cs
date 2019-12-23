@@ -10,9 +10,13 @@ public class PuzzleDay5_1 : PuzzleBase
     public override object CalculateSolutions()
     {
         IntCodeComputer computer = new IntCodeComputer(inputs);
-        computer.Execute();
+        while(!computer.done)
+        {
+            computer.AddInput(5);
+            computer.Execute();
+        }
         
-        return "error";
+        return computer.output.Last();
     }
 
     protected override string GetPuzzleData()

@@ -26,11 +26,11 @@ public abstract class IntCodeInstruction
 
     private List<long> memory;
     private List<InstructionMode> modes;
-    protected int input;
+    protected long input;
     protected int index;
-    protected int relativeBase;
+    protected long relativeBase;
 
-    public int Process(List<long> memory, List<InstructionMode> modes, int input, int relativeBase, int index)
+    public int Process(List<long> memory, List<InstructionMode> modes, long input, long relativeBase, int index)
     {
         this.memory = memory;
         this.modes = modes;
@@ -49,7 +49,7 @@ public abstract class IntCodeInstruction
             if (modes[paramIndex] == InstructionMode.Immediate)
                 return this[index + paramIndex + 1];
             if (modes[paramIndex] == InstructionMode.Relative)
-                return this[relativeBase + (int)this[index + paramIndex + 1]];
+                return this[(int)relativeBase + (int)this[index + paramIndex + 1]];
 
         }
         return this[(int)this[index + paramIndex + 1]];
@@ -61,7 +61,12 @@ public abstract class IntCodeInstruction
         {
             if (modes[paramIndex] == InstructionMode.Relative)
             {
-                this[relativeBase + (int)this[index + paramIndex + 1]] = value;
+                this[(int)relativeBase + (int)this[index + paramIndex + 1]] = value;
+                return;
+            }
+            if (modes[paramIndex] == InstructionMode.Immediate)
+            {
+                this[index + paramIndex + 1] = value;
                 return;
             }
 
@@ -218,7 +223,7 @@ public class ModifyRelativeBase : IntCodeInstruction
 {
     public override int Identifier => 9;
 
-    public int modifiedBase;
+    public long modifiedBase;
 
     protected override int Execute()
     {

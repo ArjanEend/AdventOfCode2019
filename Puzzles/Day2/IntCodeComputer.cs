@@ -6,21 +6,23 @@ using System.Linq;
 public class IntCodeComputer
 {
     private List<long> memory;
-    private List<int> inputs;
+    public List<long> inputs;
     private Dictionary<int, Type> instructions = new Dictionary<int, Type>();
 
     public List<long> output = new List<long>();
 
     private int executionIndex = 0;
-    private int relativeBase = 0;
+    private long relativeBase = 0;
     private int inputIndex = 0;
 
     public bool done = false;
 
-    public IntCodeComputer(List<int> opCodes, List<int> inputs = null)
+    public bool InputExhausted => inputIndex >= inputs.Count;
+
+    public IntCodeComputer(List<int> opCodes, List<long> inputs = null)
     {
         this.memory = opCodes.Select(i => (long)i).ToList();
-        this.inputs = inputs ?? new List<int>{1};
+        this.inputs = inputs ?? new List<long>();
         
         IEnumerable<IntCodeInstruction> types = typeof(IntCodeInstruction)
                 .Assembly.GetTypes()
@@ -39,10 +41,10 @@ public class IntCodeComputer
         inputIndex = 0;
     }
 
-    public IntCodeComputer(List<long> opCodes, List<int> inputs = null)
+    public IntCodeComputer(List<long> opCodes, List<long> inputs = null)
     {
         this.memory = opCodes;
-        this.inputs = inputs ?? new List<int>{1};
+        this.inputs = inputs ?? new List<long>{1};
         
         IEnumerable<IntCodeInstruction> types = typeof(IntCodeInstruction)
                 .Assembly.GetTypes()
@@ -56,6 +58,11 @@ public class IntCodeComputer
     }
 
     public void AddInput(int input)
+    {
+        inputs.Add(input);
+    }
+
+    public void AddInput(long input)
     {
         inputs.Add(input);
     }
@@ -84,7 +91,7 @@ public class IntCodeComputer
 
             IntCodeInstruction instruction = Activator.CreateInstance(instructions[(int)opCode]) as IntCodeInstruction;
 
-            int input = 0;
+            long input = 0;
             if(instruction is WriteInstruction && inputIndex >= inputs.Count)
             {
                 return;
