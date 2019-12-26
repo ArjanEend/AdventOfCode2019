@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 
 public class PuzzleDay22_2 : PuzzleBase
 {
@@ -13,9 +14,12 @@ public class PuzzleDay22_2 : PuzzleBase
     //private List<int> cards = new List<int>();
     private long target = 2020;
 
-    private long cardCount = 119315717514047;
+    private BigInteger cardCount = 119315717514047;
 
-    private long repeat = 101741582076661;
+    private BigInteger repeat = 101741582076661;
+
+    private BigInteger offset = 0;
+    private BigInteger increment = 1;
 
     private List<(Instructions, int)> instructions = new List<(Instructions, int)>();
 
@@ -50,55 +54,36 @@ public class PuzzleDay22_2 : PuzzleBase
 
     public override object CalculateSolutions()
     {
-        Console.WriteLine(instructions.Count + " instructions");
-        for(int i = 1; i < instructions.Count; i++)
-        {
-            if (instructions[i].Item1 == Instructions.CUT && instructions[i-1].Item1 == Instructions.CUT)
-            {
-                var tuple = instructions[i - 1];
-                tuple.Item2 += instructions[i].Item2;
-                instructions[i - 1] = tuple;
-                instructions.RemoveAt(i);
-            }
-            if (instructions[i].Item1 == Instructions.INC && instructions[i-1].Item1 == Instructions.INC)
-            {
-                var tuple = instructions[i - 1];
-                tuple.Item2 *= instructions[i].Item2;
-                instructions[i - 1] = tuple;
-                instructions.RemoveAt(i);
-            }
-            /*if (instructions[i].Item1 == Instructions.CUT && instructions[i-1].Item1 == Instructions.DEAL)
-            {
-                var tuple = instructions[i - 1];
-                tuple.Item2 *= instructions[i].Item2;
-                instructions[i - 1] = tuple;
-                instructions.RemoveAt(i);
-            }*/
-        }
-        
-        Console.WriteLine(instructions.Count + " instructions");
-        for(int i = 0; i < repeat; i++)
-        {
+
+        //for(int i = 0; i < repeat; i++)
+        //{
             foreach(var instruction in instructions)
             {
                 switch(instruction.Item1)
                 {
                     case Instructions.CUT:
-                    target = target - instruction.Item2;
-                    if (target < 0)
-                        target += cardCount;
+                    offset += instruction.Item2 * increment;
                     break;
                     case Instructions.DEAL:
-                        target = (cardCount - 1) - target;
+                        increment *= -1;
+                        offset += increment;
                     break;
                     case Instructions.INC:
-                        target = (target * instruction.Item2) % cardCount;
+                        increment *= BigInteger.ModPow(new BigInteger(instruction.Item2), cardCount - 2, cardCount);
                     break;
                 }
+                increment %= cardCount;
+                offset %= cardCount;
             }
-        }
-        
+        //}
+        var oldInc = increment;
+        increment = BigInteger.ModPow(oldInc, repeat, cardCount);
+        offset = offset * (1 - increment) * BigInteger.ModPow(((1 - oldInc) % cardCount), cardCount - 2, cardCount);
 
-        return target;
+        offset %= cardCount;
+
+        var card = (offset + target * increment) % cardCount;
+
+        return card;
     }
 }
